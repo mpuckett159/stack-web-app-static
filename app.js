@@ -2,12 +2,17 @@ new Vue({
     el: '#app',
 
     data: {
-        ws: null, // Our websocket
+        ws: null, // Our websocket connection
         tableId: null, // meeting ID
         stackContent: '', // Current speaker queue stack
-        name: null,
-        joined: false,
-        meetingUrl: null
+        name: null, // The users name
+        joined: false, // If a user is joined to a websocket connection or not
+        meetingUrl: null, // The meeting URL that can be copy/pasted and sent to others to connect to this meeting
+        clientId: null, // Unique ID of the client
+        userList: null, // Current list of users. This will be a prop object that includes other information like number of times spoken and associated client IDs of names
+        isMod: null, // Bool that tells client if they are a mod or not, and will allow showing of various mod tools
+        requestsToStack: null, // Current list of users asking mod to get on stack
+        modNotes: null // This will be populated by the mod as needed and pertain to the users connected to a meeting. Will auto flush when users leave
     },
 
     created: function() {
