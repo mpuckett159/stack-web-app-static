@@ -52,6 +52,12 @@ new Vue({
             }
         },
 
+        startDrag: (evt, user) => {
+            evt.dataTransfer.dropEffect = 'move'
+            evt.dataTransfer.effectAllowed = 'move'
+            evt.dataTransfer.setData('itemID', user.id)
+        },
+
         join: function () {
             // Validate inputs
             if (!this.tableId && !this.name) {
