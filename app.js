@@ -120,20 +120,30 @@ function messageListener(self, event) {
             if(self.clientId == null){
                 console.log("Registering self " + messageData.clientId);
                 self.clientId = messageData.clientId;
-            } else {
-                console.log("Need to figure out how to make this a message just to the new client message on backend.")
             }
+            var msg = {
+                meetingId: self.tableId,
+                action: "newUser",
+                clientId: self.clientId,
+                msgData: {clientName: self.name},
+            };
+            console.log("New user to add to list found, sending message to other clients:")
+            console.log(msg);
+            self.ws.send(JSON.stringify(msg));
+            break;
         case "newUser":
             console.log(messageData);
             if (self.userList == null) {
                 self.userList = [];
             }
-            if(self.userList.indexOf(messageData.clientId) == -1) {
-                self.userList.push(messageData.clientId);
+            var checkList = self.userList.find(usr => usr.id === messageData.clientId);
+            if(!checkList) {
+                self.userList.push({id: messageData.clientId, name: messageData.msgData.clientName});
                 var msg = {
                     meetingId: self.tableId,
                     action: "newUser",
-                    clientId: self.clientId
+                    clientId: self.clientId,
+                    msgData: {clientName: self.name},
                 };
                 console.log("New user to add to list found, sending message to other clients:")
                 console.log(msg);
@@ -153,7 +163,10 @@ function messageListener(self, event) {
             console.log("reorderStack run");
             break;
         case "removeUser":
-            self.userList = self.userList.filter(item => item !== messageData.clientId);
+            var clientObj = self.userList.find(usr => usr.id === messageData.clientId);
+            if(clientObj) {
+                self.userList = self.userList.filter(item => item !== clientObj);
+            }
             break;
         default:
             console.log("no recognized action supplied - " + messageData.action);
