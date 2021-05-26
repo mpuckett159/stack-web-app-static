@@ -71,8 +71,8 @@ new Vue({
             var self = this;
 
             // Join an on-going meeting by ID and update session values
-            this.meetingUrl = window.location.host + '/?meeting_id=' + this.tableId;
-            this.ws = new WebSocket(this.wsProtocol + '//' + window.location.host + '/ws?meeting_id=' + this.tableId);
+            this.meetingUrl = 'http://localhost:5000/http://localhost:8080/?meeting_id=' + this.tableId;
+            this.ws = new WebSocket(this.wsProtocol + '//localhost:8080/?meeting_id=' + this.tableId);
             this.joined = true;
 
             // Set up event listeners to handle incoming/outgoing messages and open/close actions
@@ -92,15 +92,16 @@ new Vue({
             // Execute fetch to create a new WebSocket hub to connect to and store info back
             const requestOptions = {
                 method: "POST",
-                headers: { "Accept": "application/json" }
+                headers: { "Accept": "application/json" },
+                body: JSON.stringify({"modActions": ["test", "addStack", "removeStack", "reorderStack"]})
             };
-            await fetch(window.location.protocol + "//" + window.location.host + "/ws", requestOptions)
+            await fetch('http://localhost:5000/http://localhost:8080/', requestOptions)
               .then(response => response.json())
               .then(data => self.tableId = data.meetingId);
 
             // Set up new WebSocket to be used with the required meeting ID and update session values
-            this.meetingUrl = window.location.host + '/?meeting_id=' + this.tableId;
-            this.ws = new WebSocket(this.wsProtocol + '//' + window.location.host + '/ws?meeting_id=' + this.tableId);
+            this.meetingUrl = 'http://localhost:5000/http://localhost:8080/?meeting_id=' + this.tableId;
+            this.ws = new WebSocket(this.wsProtocol + '//localhost:8080/?meeting_id=' + this.tableId);
             this.joined = true;
 
             // Set up event listeners to handle incoming/outgoing messages and open/close actions
@@ -110,15 +111,52 @@ new Vue({
 });
 
 function messageListener(self, event) {
-    self.stackContent = ""
-    var data = $.parseJSON(event.data);
-    if (data) {
-        for(var speaker in data) {
-            var id = data[speaker].speakerId.split("-")
-            self.stackContent += '<div class="chip">'
-                + data[speaker].name + "<br/>" + id[id.length - 1]
-            + '</div><br/>';
-        };
+    self.stackContent = "";
+    console.log(event.data);
+    var messageData = $.parseJSON(event.data);
+
+    switch (messageData.action) {
+        case "registerSelfUser":
+            if(self.clientId == null){
+                console.log("Registering self " + messageData.clientId);
+                self.clientId = messageData.clientId;
+            } else {
+                console.log("Need to figure out how to make this a message just to the new client message on backend.")
+            }
+        case "newUser":
+            console.log(messageData);
+            if (self.userList == null) {
+                self.userList = [];
+            }
+            if(self.userList.indexOf(messageData.clientId) == -1) {
+                self.userList.push(messageData.clientId);
+                var msg = {
+                    meetingId: self.tableId,
+                    action: "newUser",
+                    clientId: self.clientId
+                };
+                console.log("New user to add to list found, sending message to other clients:")
+                console.log(msg);
+                self.ws.send(JSON.stringify(msg));
+            }
+            break;
+        case "test":
+            console.log("test action run");
+            break;
+        case "addStack":
+            console.log("addStack run");
+            break;
+        case "removeStack":
+            console.log("removeStack run");
+            break;
+        case "reorderStack":
+            console.log("reorderStack run");
+            break;
+        case "removeUser":
+            self.userList = self.userList.filter(item => item !== messageData.clientId);
+            break;
+        default:
+            console.log("no recognized action supplied - " + messageData.action);
     }
 }
 

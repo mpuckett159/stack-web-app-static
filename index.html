@@ -23,7 +23,7 @@
     <div class="row" v-if="joined">
         <div class="col 2">
             <button class="waves-effect waves-light btn">
-                {{name}}
+                {{name}} {{clientId}}
             </button>
         </div>
         <div class="col 2">
@@ -36,7 +36,7 @@
             <div class="col s12">
                 <div class="card">
                     <div class="scroll-box">
-                        <div id="current-stack" class="card-content" v-html="stackContent">
+                        <div id="current-stack" class="card-content" v-html="userList">
                         </div>
                     </div>
                 </div>
